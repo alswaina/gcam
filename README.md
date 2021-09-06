@@ -1,8 +1,29 @@
-# gcam
-Global Change Analysis Model (GCAM) is an integrated tool for exploring the dynamics of the coupled human-Earth system and the response of this system to global changes. GCAM is a global model that represents the behavior of, and interactions between five systems: the energy system, water, agriculture and land use, the economy, and the climate. Throughout its lifetime, GCAM has evolved in response to the need to address an expanding set of science and assessment questions.
+**DESCRIPTION:**
 
-PNNL is the steward of the GCAM model, whose development dates back to 1981, and is now a freely available community model (see [GCAM Community](http://www.globalchange.umd.edu/models/gcam/gcam-community/)). The team at JGCRI is comprised of economists, engineers, energy experts, forest ecologists, agricultural scientists, hydrologists, and Earth system scientists who develop the model and apply it to a range of science and policy research questions.
+_Coming soon.._
 
-For a description of the model, and on-line documentation, see the [GCAM On-line](http://jgcri.github.io/gcam-doc/) Documentation.
+**SYNTAX:**
 
-**Contacts**: [Pralit Patel](pralit.patel@pnnl.gov) or [Kate Calvin](katherine.calvin@pnnl.gov).
+<code>Rscript <file_script.R> (-d <DB_PATH> | -f <DBs_FOLDER>)</code>
+
+**OPTIONS:**
+
+  <code>-d</code> for SINGLE DB run followed by path to the database
+  
+  <code>-f</code> for ALL DBs run on folder containing the dbs followed by path to the folder
+
+
+**Example of a single database run:**
+  
+<code>Rscript data_extractor.R -d ./output </code>
+
+The line above will run data_extractor.R on a single database inside output folder located in current directory
+
+**Example of a multiple databases run:** 
+  
+<code>Rscript data_extractor.R -f ./set_of_dbs</code>
+
+The line above will run data_extractor.R on a all databases inside set_of_dbs folder located in current directory
+
+**Note:**
+database name must start with "database_" in order to by recognized. For example: _database_5p4_nze01_
