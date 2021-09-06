@@ -3,9 +3,12 @@
 # Github  : github.com/alswaina
 # email   : alswaina.fahad@gmail.com
 
+#TODO:
+# Move results output to a folder name: output_<db_name>_csv | output_<db_folder>_csv
+
+
 #LIBRARIES ----------------------------------------------------------------------------------
 library(rgcam)
-
 
 #DEFAULT VALUES -----------------------------------------------------------------------------
 #.QUERIES: Select queries to run: "ONLY_RUN <- c(7, 9)". Run all queries use:"ONLY_RUN <- c(1:18)" i.e. from 1 to 18
@@ -28,15 +31,18 @@ main <- function(db.path, execution.type, queries_xml){
   #default MAIN QUERY
   MAIN.QUERY <- normalizePath(MAIN.QUERY)
   print_headerExecution(top = T)
+  
   if(execution.type =="db"){ #run on a single db
     #header
     header <- basename(db.path)
     print_headerDB(header=basename(db.path), top = T)
     #conn
     myconn <- get_db_conn(db.path=db.path)
+
     if(is.null(myconn)){
       break
     }
+
     scenario.name <- get_recent_scenario(myconn=myconn)
     #env
     print_env(db.path = db.path, MAIN.QUERY = MAIN.QUERY, scenario.name = scenario.name)
@@ -48,7 +54,6 @@ main <- function(db.path, execution.type, queries_xml){
   else if(execution.type == "recursive"){ #run on a set of dbs
     list_dbs <- list.dirs(path=db.path, recursive = F, full.names = T)
     list_dbs <- grep(pattern = ".*(database_)", x = list_dbs, value = TRUE)
-    #list_dbs <- dir(path = db.path, full.names = T, recursive = F, pattern=".*(database_)")
     dbs_count <- length(list_dbs)
     counter <- 0
     for(db.path in list_dbs){
@@ -58,9 +63,11 @@ main <- function(db.path, execution.type, queries_xml){
       print_headerDB(header=paste0(basename(db.path), " - ", counter, "/", dbs_count), top = T)
       #conn
       myconn <- get_db_conn(db.path=db.path)
+
       if(is.null(myconn)){
         break
       }
+
       scenario.name <- get_recent_scenario(myconn=myconn)
       #env
       print_env(db.path = db.path, MAIN.QUERY = MAIN.QUERY, scenario.name = scenario.name)
@@ -74,10 +81,8 @@ main <- function(db.path, execution.type, queries_xml){
 }
 
 get_table <- function(myconn, query, scenario){
-  #browser()
   if(is.null(REGIONS)){REGIONS <- NULL}
   noquote(" ")
-  success <- F
   success <- F
   
   table <- tryCatch(
@@ -191,7 +196,6 @@ write_output <- function(result, output.filename, output.dirname){
 
 #connections
 get_db_conn <- function(db.path){
-  #browser()
   myconn <- NULL
   try(
     {
@@ -237,9 +241,6 @@ print_headerQuery <- function(query.counter, query.title){
 }
 
 print_env <- function(db.path, MAIN.QUERY, scenario.name){
-  #info:
-  #db path, mainQuery, scenario name
-  
   #DB_PATH
   print(paste0("DB_PATH: ", db.path))
   
@@ -819,20 +820,15 @@ else
     </labelRewriteList>
 </query>')
 )
-#----------------------------------------------------------------------------------------------------
-
 
 #EXECUTION ------------------------------------------------------------------------
-#main(db.path, execution.type, queries_xml)
 
 tryCatch(
   {
     my_log <- file("data_extractor_log.txt") # File name of output log
     sink(my_log, append = TRUE, type = "output", split = T) # Writing console output to log file
-    #sink(my_log, append = TRUE, type = "message")
-    
     timestamp()
-    
+
     #TERMINAL VALIDATION ------------------------------------------------------------------------
     args = commandArgs(trailingOnly=TRUE)
     # test if there is at least one argument: if not, return an error
@@ -843,11 +839,9 @@ tryCatch(
       if (args[1] == "-d"){
         execution.type = "db"
         db.path = args[2]
-        #db.path = normalizePath(db.path)
       }else if(args[1] == "-f"){
         execution.type = "recursive"
         db.path = args[2]
-        #db.path = normalizePath(db.path)
       }
     } else{
       stop("Please provide only one arguament to Rscript as following: Rscript <Rscript.R> [-d <DB_PATH> | -f <DBs_FOLDER>]", call.=FALSE)
@@ -860,7 +854,6 @@ tryCatch(
       stop("Cannot find main_query file or db(s) folder!")
     }
     
-    #EXECUTION ------------------------------------------------------------------------
     main(db.path, execution.type, queries_xml)
   }, 
   error=function(cond){
