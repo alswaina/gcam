@@ -1,43 +1,32 @@
 #!/usr/bin/env Rscript
-library(rgcam)
 # Author  : Fahad Alswaina
 # Github  : github.com/alswaina
 # email   : alswaina.fahad@gmail.com
-# Source  : Rscript data_extractor.r (-d <DB_PATH> | -f <DBs_FOLDER>)
 
-#HELP ----------------------------------------------------------------------------------------
-#.SYNTAX: Rscript <file_script.R> (-d <DB_PATH> | -f <DBs_FOLDER>)
-#.. -d for SINGLE DB run followed by path to the database
-#.. -f for ALL DBs run on folder containing the dbs followed by path to the folder
-#
-#.Example 1 SINGLE DB: Rscript data_extractor.R -d ./output 
-#.. code above will run data_extractor.R on a single db inside output folder located in current directory
-#
-#.Example 2 ALL DBs: Rscript data_extractor.R -f ./set_of_dbs 
-#.. code above will run data_extractor.R on a all dbs inside set_of_dbs folder located in current directory
-#
-#.database name must start with "database_" in order to by recognized. For example: database_5p4_nze01
+#LIBRARIES ----------------------------------------------------------------------------------
+library(rgcam)
+
 
 #DEFAULT VALUES -----------------------------------------------------------------------------
-#.QUERIES: Select queries to run: "only_run <- c(7, 9)". Run all queries use:"only_run <- c(1:18)" i.e. from 1 to 18
-only_run <- c(1:6) #only_run <- c(7, 9, 10, 11, 12, 13)
+#.QUERIES: Select queries to run: "ONLY_RUN <- c(7, 9)". Run all queries use:"ONLY_RUN <- c(1:18)" i.e. from 1 to 18
+ONLY_RUN <- c(1:6) #ONLY_RUN <- c(7, 9, 10, 11, 12, 13)
 #
 #.MAIN_QUERY file to read the query from. Uses forward-slash path seperator i.e. "/"
-#main.query <- "/path/to/Main_queries.xml"
+#MAIN.QUERY <- "/path/to/Main_queries.xml"
 #
 #.QUERY.BY = {"title", "xml} 
 #.. "title": use the title provided in queries_xml list to extract the query's xml from Main_queries.xml. 
 #.. "xml": use the the actual xml query provided in queries_xml list to run the query 
-query.by <- "title"
+QUERY.BY <- "title"
 #
 #.REGIONS: Specify what region(s) to run. For example c() means global or c('USA', 'Canada') for any set of countries
-regions <- c('USA')
+REGIONS <- c('USA')
 #
 
 #FUNCTIONS -----------------------------------------------------------------------
 main <- function(db.path, execution.type, queries_xml){
   #default MAIN QUERY
-  main.query <- normalizePath(main.query)
+  MAIN.QUERY <- normalizePath(MAIN.QUERY)
   print_headerExecution(top = T)
   if(execution.type =="db"){ #run on a single db
     #header
@@ -50,9 +39,9 @@ main <- function(db.path, execution.type, queries_xml){
     }
     scenario.name <- get_recent_scenario(myconn=myconn)
     #env
-    print_env(db.path = db.path, main.query = main.query, scenario.name = scenario.name)
+    print_env(db.path = db.path, MAIN.QUERY = MAIN.QUERY, scenario.name = scenario.name)
     #processing
-    process_queries(myconn, db.path, main.query, queries_xml, scenario=scenario.name)
+    process_queries(myconn, db.path, MAIN.QUERY, queries_xml, scenario=scenario.name)
     #end
     print_headerDB(header=NULL, top = F)
   }
@@ -74,9 +63,9 @@ main <- function(db.path, execution.type, queries_xml){
       }
       scenario.name <- get_recent_scenario(myconn=myconn)
       #env
-      print_env(db.path = db.path, main.query = main.query, scenario.name = scenario.name)
+      print_env(db.path = db.path, MAIN.QUERY = MAIN.QUERY, scenario.name = scenario.name)
       #processing
-      process_queries(myconn, db.path, main.query, queries_xml, scenario=scenario.name)
+      process_queries(myconn, db.path, MAIN.QUERY, queries_xml, scenario=scenario.name)
       #end
       print_headerDB(header=NULL, top = F)
     }
@@ -86,14 +75,14 @@ main <- function(db.path, execution.type, queries_xml){
 
 get_table <- function(myconn, query, scenario){
   #browser()
-  if(is.null(regions)){regions <- NULL}
+  if(is.null(REGIONS)){REGIONS <- NULL}
   noquote(" ")
   success <- F
   success <- F
   
   table <- tryCatch(
     {
-      table <- runQuery(dbConn=myconn, query=query, scenario=scenario, regions=regions)
+      table <- runQuery(dbConn=myconn, query=query, scenario=scenario, regions=REGIONS)
       cat("+ Query proccessed Successfully!\n")
       success <- T
       table
@@ -138,14 +127,14 @@ get_table <- function(myconn, query, scenario){
 }
 
 #queries
-process_queries <- function(myconn, db.path, main.query, queries_xml, scenario){
-  #query.by: {title, xml}
-  if(is.null(query.by)){
-    query.by <- "title" 
+process_queries <- function(myconn, db.path, MAIN.QUERY, queries_xml, scenario){
+  #QUERY.BY: {title, xml}
+  if(is.null(QUERY.BY)){
+    QUERY.BY <- "title" 
   }
   
   for(query.counter in names(queries_xml)){
-    if(!as.integer(query.counter) %in% only_run){
+    if(!as.integer(query.counter) %in% ONLY_RUN){
       next
     }
     #output.filename: <Q#>_<db_foldername>
@@ -154,22 +143,22 @@ process_queries <- function(myconn, db.path, main.query, queries_xml, scenario){
     query.title <- names(queries_xml[[query.counter]])
     query.xml <- queries_xml[[query.counter]][[query.title]]
     
-    query.query <- buid_query(query.title=query.title, main.query=main.query)
+    query.query <- buid_query(query.title=query.title, MAIN.QUERY=MAIN.QUERY)
     
     process_query(myconn, scenario = scenario,
                   output.filename=output.filename, output.dirname=output.dirname,
-                  query.by=query.by, query.xml=query.xml, query.query= query.query, query.title=query.title,
+                  QUERY.BY=QUERY.BY, query.xml=query.xml, query.query= query.query, query.title=query.title,
                   query.counter=query.counter)
     cat("---\n")
   }
 }
 
-process_query <- function(myconn, scenario, output.filename, output.dirname, query.by, query.xml, query.query, query.title, query.counter){
+process_query <- function(myconn, scenario, output.filename, output.dirname, QUERY.BY, query.xml, query.query, query.title, query.counter){
   print_headerQuery(query.counter, query.title)
   query <- NULL
-  if(query.by == "title"){
+  if(QUERY.BY == "title"){
     query <- query.query
-  }else if(query.by == "xml"){
+  }else if(QUERY.BY == "xml"){
     query = query.xml
   }
   
@@ -181,8 +170,8 @@ process_query <- function(myconn, scenario, output.filename, output.dirname, que
   }
 }
 
-buid_query <- function(query.title, main.query){
-  query <- paste0("doc('", main.query, "')//*[@title='", query.title, "']")
+buid_query <- function(query.title, MAIN.QUERY){
+  query <- paste0("doc('", MAIN.QUERY, "')//*[@title='", query.title, "']")
   query
 }
 
@@ -247,7 +236,7 @@ print_headerQuery <- function(query.counter, query.title){
   cat(query.decoration)
 }
 
-print_env <- function(db.path, main.query, scenario.name){
+print_env <- function(db.path, MAIN.QUERY, scenario.name){
   #info:
   #db path, mainQuery, scenario name
   
@@ -255,7 +244,7 @@ print_env <- function(db.path, main.query, scenario.name){
   print(paste0("DB_PATH: ", db.path))
   
   #MAIN_QUERY
-  print(paste0("MAIN_QUERY: ", main.query))
+  print(paste0("MAIN_QUERY: ", MAIN.QUERY))
   
   #SCENARIO
   print(paste0("ON_SCENARIO: ", scenario.name))
@@ -864,8 +853,8 @@ tryCatch(
       stop("Please provide only one arguament to Rscript as following: Rscript <Rscript.R> [-d <DB_PATH> | -f <DBs_FOLDER>]", call.=FALSE)
     }
     
-    if(file.exists(normalizePath(main.query)) & file.exists(normalizePath(db.path))){
-      main.query <- normalizePath(main.query)
+    if(file.exists(normalizePath(MAIN.QUERY)) & file.exists(normalizePath(db.path))){
+      MAIN.QUERY <- normalizePath(MAIN.QUERY)
       db.path <- normalizePath(db.path)
     }else{
       stop("Cannot find main_query file or db(s) folder!")
