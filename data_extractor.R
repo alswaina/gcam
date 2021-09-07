@@ -323,8 +323,9 @@ tryCatch(
       script.path <- normalizePath(script.path)
       
       #Validate & load configuration file
-      validation_config(source("./config.R"))
-      source("./config.R")
+      config.path <- paste0(script.path, "/", "config.R")
+      validation_config(source(config.path))
+      source(config.path)
       
       MAIN.QUERY <- validation_path(MAIN.QUERY, path_type = "file")
       validation_variables_stop(ONLY_RUN, name="config/ONLY_RUN")
