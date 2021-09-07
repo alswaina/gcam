@@ -1,10 +1,13 @@
 #!/usr/bin/env Rscript
 # Author  : Fahad Alswaina
 # Github  : github.com/alswaina
-# email   : alswaina.fahad@gmail.com
+# Email   : alswaina.fahad@gmail.com
 
 #TODO:
 # Move results output to a folder name: output_<db_name>_csv | output_<db_folder>_csv
+# validate db_path exist
+# validate QuERIES_XML has at least one element
+# ONLY_RUN != NULL 
 
 
 #LIBRARIES ----------------------------------------------------------------------------------
@@ -837,10 +840,10 @@ tryCatch(
     } else if (length(args)==2) {
       # default output file
       if (args[1] == "-d"){
-        execution.type = "db"
+        execution.type <- "db"
         db.path = args[2]
       }else if(args[1] == "-f"){
-        execution.type = "recursive"
+        execution.type <- "recursive"
         db.path = args[2]
       }
     } else{
@@ -864,7 +867,7 @@ tryCatch(
     print("- Warning:")
     print(cond)
   },
-  finally ={
+  finally={
     closeAllConnections() # Close connection to log file
   }
 )
