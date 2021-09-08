@@ -18,6 +18,15 @@ REGIONS <- c('Global')
 
 #QUERIES XMLs ------------------------------------------------------------------
 #.SYNTAX: list( number = list (query.title = query.xml), ...)
+#.Example of a new query to add to the list queries_xml: 
+#.number: 19, query.title: population by region, query.xmm: <demographicsQuery>.. </demographicsQuery>
+# "19" = list(
+#   "population by region" = '<demographicsQuery title="population by region">
+#   <axis1 name="region">region</axis1>
+#   <axis2 name="Year">populationMiniCAM</axis2>
+#   <xPath buildList="true" dataName="total-population" group="false" sumAll="false">demographics/populationMiniCAM/total-population/node()</xPath>
+#   <comments/>
+#   </demographicsQuery>')
 
 queries_xml <- list(
   #QUERY_1 -- 
