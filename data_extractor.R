@@ -6,7 +6,6 @@
 #TODO:
 
 
-
 #LIBRARIES ----------------------------------------------------------------------------------
 library(rgcam)
 
@@ -94,8 +93,10 @@ get_table <- function(myconn, query, scenario){
   
   table <- tryCatch(
     {
-      table <- reshape2::dcast(table, ... ~ year)
       cols <- names(table)
+      if("year" %in% cols){
+        table <- reshape2::dcast(table, ... ~ year)
+      }
       colx_reorder <- c(cols[-1], cols[1])
       table <- table[colx_reorder]
       cat("+ Data proccessed Successfully!\n")
