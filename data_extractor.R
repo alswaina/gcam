@@ -23,7 +23,7 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
       break
     }
 
-    scenario.name <- get_recent_scenario(myconn=myconn)
+    scenario.name <- get_recent_scenario(myconn = myconn)
     #env
     print_env(db.path = db.path, MAIN.QUERY = MAIN.QUERY, scenario.name = scenario.name)
     #processing
@@ -73,7 +73,7 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
     for(db.path in list_dbs){
       db.path <- normalizePath(db.path)
       db.name <- basename(db.path)
-      
+
       counter <- counter + 1
       #header
       print_headerDB(header = paste0(db.name, " - ", counter, "/", dbs_count), top = TRUE)
@@ -190,7 +190,7 @@ process_query <- function(myconn, scenario, output.filename, output.path, QUERY.
     result <- get_table(myconn, query, scenario = scenario)
     write_output(result = result, output.filename = output.filename, output.path = output.path)
   }else{
-    print("ERROR IN DETECTING THE QUERY!")
+    print("ERROR IN DETECTING THE QUERY!", quote=FALSE)
   }
 }
 
@@ -206,9 +206,9 @@ write_output <- function(result, output.filename, output.path){
   if(!is.null(result)){
     output.filepath <- paste0(output.path,"/", output.filename)
     write.csv(result, file = output.filepath, row.names = FALSE)
-    print(paste0("OUTPUT: ", output.filepath))
+    print(paste0("OUTPUT: ", output.filepath), quote=FALSE)
   }else{
-    print("OUTPUT: NOT GENERATED")
+    print("OUTPUT: NOT GENERATED", quote=FALSE)
   }
   noquote(" ")
 }
@@ -261,13 +261,13 @@ print_headerQuery <- function(query.counter, query.title){
 
 print_env <- function(db.path, MAIN.QUERY, scenario.name){
   #DB_PATH
-  print(paste0("DB_PATH: ", db.path))
+  print(paste0("DB_PATH: ", db.path), quote=FALSE)
   
   #MAIN_QUERY
-  print(paste0("MAIN_QUERY: ", MAIN.QUERY))
+  print(paste0("MAIN_QUERY: ", MAIN.QUERY), quote=FALSE)
   
   #SCENARIO
-  print(paste0("ON_SCENARIO: ", scenario.name))
+  print(paste0("ON_SCENARIO: ", scenario.name), quote=FALSE)
   noquote(" ")
 }
 
@@ -405,23 +405,34 @@ tryCatch(
     
     #timing
     Saudi.time <- as.POSIXlt(Sys.time(), tz = "Asia/Riyadh")
-    curr_time <- paste("TIMESTAMP:", Saudi.time)
     
     #output dir
     time_formated <- format(Saudi.time, "%b_%d__%H_%M")
     output.name <- paste0("output_", db.name,"__", time_formated)
     output.path <- paste0(script.dir, "/", output.name)
     
-    dir.create(path = output.path)
+    dir.create(path = output.path, showWarnings = FALSE)
     
     #logging
     log.path <- paste0(output.path, "/", "logFile.txt")
     log.file <- file(log.path) # File name of output log
     sink(log.file, append = TRUE, type = "output", split = TRUE) # Writing console output to log file
-    print(paste("LOG.PATH:", log.path))
+ 
+    print(paste("TIMESTAMP:", Saudi.time), quote=FALSE)
+    print(paste("OUTPUT.DIR:", output.path), quote=FALSE)
+    print(paste("LOG.PATH:", log.path), quote=FALSE)
+    
+    selected <- if(length(SELECTED.QUERIES)) SELECTED.QUERIES else 'ALL'
+    print("SELECTED.QUERIES:", quote=FALSE)
+    print(selected, quote=FALSE)
 
-    print(curr_time)
-    print(paste("OUTPUT.DIR:", output.path))
+    selected <- if(length(SELECTED.DBs)) SELECTED.DBs else 'ALL'
+    print("SELECTED.DBs:", quote=FALSE)
+    print(selected, quote=FALSE)
+    
+    selected <- if(length(REGIONS)) REGIONS else 'Global'
+    print("REGIONS:", quote=FALSE)
+    print(selected, quote=FALSE)
     
     if(is.null(QUERY.BY)){
       QUERY.BY <- "title" 
