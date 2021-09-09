@@ -1,8 +1,8 @@
 #QUERIES
 # Select queries to run: 
-# ONLY_RUN <- c(7, 9): runs quert # 7 and 9 
-# ONLY_RUN <- c(1:18): runs 1 to 18
-ONLY_RUN <- c(1:18) 
+# SELECTED.QUERY <- c(7, 9): runs query number 7 and 9 
+# SELECTED.QUERY <- c(1:18): runs queries from 1 to 18
+SELECTED.QUERY <- c(1:18) 
 
 #MAIN_QUERY 
 # file where original queries are placed in gcam/output folder. Uses forward-slash path seperator i.e. "/"

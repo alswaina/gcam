@@ -10,9 +10,9 @@ _Coming soon.._
 
 **OPTIONS:**
 
-  <code>-d</code> for SINGLE DB run followed by path to the database
+  <code>-d</code> for SINGLE DB run followed by the path to the database
   
-  <code>-f</code> for ALL DBs run on folder containing the dbs followed by path to the folder
+  <code>-f</code> for FOLDER that contains multiple dbs followed by the path to the folder
 
 
 **Example of a single database run:**

@@ -115,14 +115,18 @@ get_table <- function(myconn, query, scenario){
 
 #queries
 process_queries <- function(myconn, db.path, MAIN.QUERY, queries_xml, scenario, QUERY.BY, output.path){
+  #TODO:
+  # loop through SELECTED.QUERIES instead - improve speed
   for(query.counter in names(queries_xml)){
-    if(!as.integer(query.counter) %in% ONLY_RUN){
+    if(!as.integer(query.counter) %in% SELECTED.QUERIES){
       next
     }
     #output.filename: <Q#>_<db_foldername>
     output.filename <- paste0("Q", query.counter, "_", basename(db.path), ".csv")
 
     query.title <- names(queries_xml[[query.counter]])
+    #TODO:
+    # NO need when QUERY.BY title
     query.xml <- queries_xml[[query.counter]][[query.title]]
     
     query.query <- buid_query(query.title = query.title, MAIN.QUERY = MAIN.QUERY)
@@ -326,7 +330,7 @@ tryCatch(
       source(config.path)
       
       MAIN.QUERY <- validation_path(MAIN.QUERY, path_type = "file")
-      validation_variables_stop(ONLY_RUN, name = "config/ONLY_RUN")
+      validation_variables_stop(SELECTED.QUERIES, name = "config/SELECTED.QUERIES")
       validation_variables_warning(REGIONS, name = "config/REGIONS")
       validation_variables_stop(queries_xml, name = "config/queries_xml")
       
