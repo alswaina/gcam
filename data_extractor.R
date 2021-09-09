@@ -349,8 +349,8 @@ tryCatch(
       return(
         list(
           "script.path" = script.path,
-          "script.name" <- script.name,
-          "script.dir" <- script.dir,
+          "script.name" = script.name,
+          "script.dir" = script.dir,
           "db.path" = db.path, 
           "execution.type" = execution.type
         )
