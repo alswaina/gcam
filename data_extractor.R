@@ -129,7 +129,7 @@ process_queries <- function(myconn, db.path, MAIN.QUERY, queries_xml, scenario, 
     
     process_query(myconn, scenario = scenario,
                   output.filename = output.filename, output.path = output.path,
-                  QUERY.BY = QUERY.BY, query.xml = query.xml, query.query =  query.query, query.title = query.title,
+                  QUERY.BY = QUERY.BY, query.xml = query.xml, query.query = query.query, query.title = query.title,
                   query.counter = query.counter)
     cat("---\n")
   }
@@ -237,14 +237,14 @@ tryCatch(
 
     #validate configuration file
     validation.check <- function(){
-      validation_config <- function(val) {
+      validation_config <- function(val){
         tryCatch({
           val
         },
-        error = function(c) {stop("Config.R is not valide", call. = FALSE)},
-        warning = function(c) {stop("Config.R doesn't exist", call. = FALSE)})
+        error = function(c){stop("Config.R is not valide", call. = FALSE)},
+        warning = function(c){stop("Config.R doesn't exist", call. = FALSE)})
       }
-      validation_path <- function(val, path_type) {
+      validation_path <- function(val, path_type){
         tryCatch({
           val <- normalizePath(val)
           if(path_type == 'file'){
@@ -268,23 +268,23 @@ tryCatch(
         })
         return(val)
       }
-      validation_variables_stop<- function(val, name){
+      validation_variables_stop <- function(val, name){
         if(!length(val)){
           stop(paste("Please proide values in", name), call. = FALSE)
         }
       }
-      validation_variables_warning<- function(val, name){
+      validation_variables_warning <- function(val, name){
         if(!length(val)){
           warning(paste("Empty value:", name), call. = FALSE)
         }
       }
       validation_args <- function(args){
         # test if there is at least one argument: if not, return an error
-        if (length(args) == 0) {
+        if(length(args) == 0){
           stop("Please provide the DB_PATH or DBs_FOLDER as following: Rscript <file_script.R> [-d <DB_PATH> | -f <DBs_FOLDER>]", call. = FALSE)
-        } else if (length(args) == 2) {
+        } else if(length(args) == 2){
           # default output file
-          if (args[1] == "-d"){
+          if(args[1] == "-d"){
             execution.type <- "db"
             db.path <- args[2]
           }else if(args[1] == "-f"){

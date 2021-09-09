@@ -1,32 +1,39 @@
+#QUERIES
+# Select queries to run: 
+# ONLY_RUN <- c(7, 9): runs quert # 7 and 9 
+# ONLY_RUN <- c(1:18): runs 1 to 18
+ONLY_RUN <- c(1:18) 
 
-#.QUERIES: Select queries to run: "ONLY_RUN <- c(7, 9)". Run all queries use:"ONLY_RUN <- c(1:18)" i.e. from 1 to 18
-ONLY_RUN <- c(1:18) #ONLY_RUN <- c(7, 9, 10, 11, 12, 13)
-#
-#.MAIN_QUERY file to read the query from. Uses forward-slash path seperator i.e. "/"
-#MAIN.QUERY <- "/path/to/Main_queries.xml"
+#MAIN_QUERY 
+# file where original queries are placed in gcam/output folder. Uses forward-slash path seperator i.e. "/"
+# MAIN.QUERY <- "/path/to/Main_queries.xml"
 MAIN.QUERY <- NULL
-#
-#.QUERY.BY = {"title", "xml} 
-#.. "title": use the title provided in queries_xml list to extract the query's xml from Main_queries.xml. 
-#.. "xml": use the the actual xml query provided in queries_xml list to run the query 
+
+#QUERY.BY
+# QUERY.BY takes either "title" or "xml"
+# title: the query's title (in queries_xml list) will be used to extract the query's xml (from Main_queries.xml)
+# xml: the actual xml query (provided in queries_xml list) will be used to to run the query 
 QUERY.BY <- "title"
-#
-#.REGIONS: Specify what region(s) to run. For example c() means global or c('USA', 'Canada') for any set of countries
+
+#REGIONS 
+# Specify the region(s) to run on. 
+# REGIONS <- c() means global or c('USA', 'Canada') for any set of countries
 REGIONS <- c('Global')
-#
 
 
-#QUERIES XMLs ------------------------------------------------------------------
-#.SYNTAX: list( number = list (query.title = query.xml), ...)
-#.Example of a new query to add to the list queries_xml: 
-#.number: 19, query.title: population by region, query.xmm: <demographicsQuery>.. </demographicsQuery>
-# "19" = list(
-#   "population by region" = '<demographicsQuery title="population by region">
-#   <axis1 name="region">region</axis1>
-#   <axis2 name="Year">populationMiniCAM</axis2>
-#   <xPath buildList="true" dataName="total-population" group="false" sumAll="false">demographics/populationMiniCAM/total-population/node()</xPath>
-#   <comments/>
-#   </demographicsQuery>')
+#QUERIES_XMLs 
+# SYNTAX: list( number = list (query.title = query.xml), ...)
+#  Example of a new query to add to the list queries_xml: 
+#    number: 19, query.title: population by region, query.xmm: <demographicsQuery>.. </demographicsQuery>
+#       "19" = list(
+#       "population by region" = '<demographicsQuery title="population by region">
+#                                       <axis1 name="region">region</axis1>
+#                                       <axis2 name="Year">populationMiniCAM</axis2>
+#                                       <xPath buildList="true" dataName="total-population" group="false" sumAll="false">
+#                                       demographics/populationMiniCAM/total-population/node()
+#                                       </xPath>
+#                                   <comments/>
+#                                   </demographicsQuery>'
 
 queries_xml <- list(
   #QUERY_1 -- 
