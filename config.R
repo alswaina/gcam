@@ -1,8 +1,15 @@
 #QUERIES
 # Select queries to run: 
-# SELECTED.QUERY <- c(7, 9): runs query number 7 and 9 
-# SELECTED.QUERY <- c(1:18): runs queries from 1 to 18
-SELECTED.QUERY <- c(1:18) 
+# SELECTED.QUERIES <- c(7, 9): runs query number 7 and 9 
+# SELECTED.QUERIES <- c(2:5): runs queries from 2 to 5
+# SELECTED.QUERIES <- c() or NULL : runs all queries in queries_xml list
+SELECTED.QUERIES <- NULL
+
+#DATABASES
+# Select dbs to query: list the names of the dbs name
+# SELECTED.DBs <- c("database_basexdb_5p4_nze02", ..): runs query on db name: "database_basexdb_5p4_nze02" 
+# SELECTED.DBs <- c() or NULL for all dbs in the folder
+SELECTED.DBs <- c() 
 
 #MAIN_QUERY 
 # file where original queries are placed in gcam/output folder. Uses forward-slash path seperator i.e. "/"
