@@ -250,8 +250,8 @@ tryCatch(
         tryCatch({
           val
         },
-        error = function(c){stop("Config.R is not valide", call. = FALSE)},
-        warning = function(c){stop("Config.R doesn't exist", call. = FALSE)})
+        error = function(c){stop("config.R file is not valide", call. = FALSE)},
+        warning = function(c){stop("config.R file doesn't exist", call. = FALSE)})
       }
       validation_path <- function(val, path_type){
         tryCatch({
@@ -328,9 +328,16 @@ tryCatch(
       file.arg.name <- "--file="
       script.path <- sub(file.arg.name, "", input.full[grep(file.arg.name, input.full)])
       script.path <- normalizePath(script.path)
+      script.name <- basename(script.path)
+      script.dir <- dirname(script.path)
+      
+      #set working directory to the script's directory
+      setwd(script.dir)
+      this.dir <- getwd()
       
       #Validate & load configuration file
-      config.path <- paste0(script.path, "/", "config.R")
+      config.path <- paste0(this.dir, "/", "config.R")
+      
       validation_config(source(config.path))
       source(config.path)
       
@@ -342,6 +349,8 @@ tryCatch(
       return(
         list(
           "script.path" = script.path,
+          "script.name" <- script.name,
+          "script.dir" <- script.dir,
           "db.path" = db.path, 
           "execution.type" = execution.type
         )
@@ -351,8 +360,9 @@ tryCatch(
 
     #script info
     script.path <- validated.values[["script.path"]]
-    script.name <- basename(script.path)
-    script.dir <- dirname(script.path)
+    script.name <- validated.values[["script.name"]]
+    script.dir <- validated.values[["script.dir"]]
+    
 
     execution.type <- validated.values[["execution.type"]]
     
