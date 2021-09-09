@@ -33,16 +33,47 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
   }
   else if(execution.type == "recursive"){ #run on a set of dbs
     list_dbs <- list.dirs(path = db.path, recursive = FALSE, full.names = TRUE)
+    
+    #TODO:
+    # restricting the name init. to database_ can be eliminated 
     list_dbs <- grep(pattern = ".*(database_)", x = list_dbs, value = TRUE)
-    dbs_count <- length(list_dbs)
+    selected.dbs.available <- list()
+    dbs_count <- 0
+    
+    if(length(SELECTED.DBs)){
+      for(db in list_dbs){
+        if(basename(db) %in% SELECTED.DBs){
+          dbs_count <- dbs_count + 1
+          selected.dbs.available[basename(db)] <- normalizePath(db)
+        }
+      }
+      
+      db_name.available <- names(selected.dbs.available)
+      db_name.notfound <- setdiff(SELECTED.DBs, db_name.available)
+      
+      if(length(db_name.notfound) == length(SELECTED.DBs)){
+        msg <- paste('None of SELECTED.DBs are available in the folder:', db.path)
+        stop(msg, call. = FALSE)
+      }
+      else if(length(db_name.notfound)){
+        msg <- paste('\nNOTE: The following dbs in SELECTED.DBs are not found:','\n')
+        cat(msg)
+        msg <- paste0(db_name.notfound, '\n')
+        cat(msg)
+      }
+      
+      list_dbs <- unname(unlist(selected.dbs.available))
+      dbs_count <- length(list_dbs)
+    }
+    else{
+      dbs_count <- length(list_dbs)
+    }
+    
     counter <- 0
     for(db.path in list_dbs){
       db.path <- normalizePath(db.path)
       db.name <- basename(db.path)
       
-      if(length(SELECTED.DBs) > 0 & !db.name %in% SELECTED.DBs){
-        next
-      }
       counter <- counter + 1
       #header
       print_headerDB(header = paste0(db.name, " - ", counter, "/", dbs_count), top = TRUE)
@@ -96,11 +127,13 @@ get_table <- function(myconn, query, scenario){
   table <- tryCatch(
     {
       cols <- names(table)
+      table <- data.frame(table)
       if("year" %in% cols){
-        table <- reshape2::dcast(table, ... ~ year)
+        table <- reshape2::dcast(table, ... ~ year, value.var = "value")
+        cols <- names(table)
       }
       colx_reorder <- c(cols[-1], cols[1])
-      table <- table[colx_reorder]
+      table <- table[, colx_reorder]
       cat("+ Data proccessed Successfully!\n")
       table
     }, 
@@ -351,8 +384,9 @@ tryCatch(
           "script.path" = script.path,
           "script.name" = script.name,
           "script.dir" = script.dir,
-          "db.path" = db.path, 
-          "execution.type" = execution.type
+          "MAIN.QUERY" = MAIN.QUERY,
+          "execution.type" = execution.type, 
+          "db.path" = db.path
         )
       )
     }
@@ -362,8 +396,7 @@ tryCatch(
     script.path <- validated.values[["script.path"]]
     script.name <- validated.values[["script.name"]]
     script.dir <- validated.values[["script.dir"]]
-    
-
+    MAIN.QUERY <- validated.values[["MAIN.QUERY"]]
     execution.type <- validated.values[["execution.type"]]
     
     #folder/db info
