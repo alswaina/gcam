@@ -4,97 +4,140 @@
 # Email   : alswaina.fahad@gmail.com
 
 #TODO:
-
+# improve prints functions' names: i.e. print_headerQuery => print_exc_header
 
 #LIBRARIES ----------------------------------------------------------------------------------
 library(rgcam)
 
 #FUNCTIONS -----------------------------------------------------------------------
-main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, QUERY.BY){
-  print_headerExecution(top = TRUE)
-  
-  if(execution.type == "db"){ #run on a single db
-    #header
-    print_headerDB(header = basename(db.path), top = TRUE)
-    #conn
-    myconn <- get_db_conn(db.path = db.path)
-
-    if(is.null(myconn)){
-      break
-    }
-
-    scenario.name <- get_recent_scenario(myconn = myconn)
-    #env
-    print_env(db.path = db.path, MAIN.QUERY = MAIN.QUERY, scenario.name = scenario.name)
-    #processing
-    process_queries(myconn, db.path, MAIN.QUERY, queries_xml, scenario = scenario.name, QUERY.BY = QUERY.BY, output.path = output.path)
-    #end
-    print_headerDB(header = NULL, top = FALSE)
-  }
-  else if(execution.type == "recursive"){ #run on a set of dbs
-    list_dbs <- list.dirs(path = db.path, recursive = FALSE, full.names = TRUE)
+main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, QUERY.BY) {
+    print_headerExecution(top = TRUE)
     
-    #TODO:
-    # restricting the name init. to database_ can be eliminated 
-    list_dbs <- grep(pattern = ".*(database_)", x = list_dbs, value = TRUE)
-    selected.dbs.available <- list()
-    dbs_count <- 0
-    
-    if(length(SELECTED.DBs)){
-      for(db in list_dbs){
-        if(basename(db) %in% SELECTED.DBs){
-          dbs_count <- dbs_count + 1
-          selected.dbs.available[basename(db)] <- normalizePath(db)
-        }
-      }
-      
-      db_name.available <- names(selected.dbs.available)
-      db_name.notfound <- setdiff(SELECTED.DBs, db_name.available)
-      
-      if(length(db_name.notfound) == length(SELECTED.DBs)){
-        msg <- paste('None of SELECTED.DBs are available in the folder:', db.path)
-        stop(msg, call. = FALSE)
-      }
-      else if(length(db_name.notfound)){
-        msg <- paste('\nNOTE: The following dbs in SELECTED.DBs are not found:','\n')
-        cat(msg)
-        msg <- paste0(db_name.notfound, '\n')
-        cat(msg)
-      }
-      
-      list_dbs <- unname(unlist(selected.dbs.available))
-      dbs_count <- length(list_dbs)
-    }
-    else{
-      dbs_count <- length(list_dbs)
-    }
-    
-    counter <- 0
-    for(db.path in list_dbs){
-      db.path <- normalizePath(db.path)
-      db.name <- basename(db.path)
-
-      counter <- counter + 1
+    if (execution.type == "db") {
+      #run on a single db
       #header
-      print_headerDB(header = paste0(db.name, " - ", counter, "/", dbs_count), top = TRUE)
+      print_headerDB(type="DB", header = basename(db.path), top = TRUE)
       #conn
       myconn <- get_db_conn(db.path = db.path)
-
-      if(is.null(myconn)){
+      
+      if (is.null(myconn)) {
         break
       }
-
+      
       scenario.name <- get_recent_scenario(myconn = myconn)
       #env
-      print_env(db.path = db.path, MAIN.QUERY = MAIN.QUERY, scenario.name = scenario.name)
+      print_env(
+        db.path = db.path,
+        scenario.name = scenario.name
+      )
       #processing
-      process_queries(myconn, db.path, MAIN.QUERY, queries_xml, scenario = scenario.name, QUERY.BY = QUERY.BY, output.path = output.path)
+      process_queries(
+        myconn,
+        db.path,
+        MAIN.QUERY,
+        queries_xml,
+        scenario = scenario.name,
+        QUERY.BY = QUERY.BY,
+        output.path = output.path
+      )
       #end
-      print_headerDB(header = NULL, top = FALSE)
+      print_headerDB(type="DB", header = NULL, top = FALSE)
     }
-  }
-  print_headerExecution(top = FALSE)
+    else if (execution.type == "recursive") {
+      if (RUN.TYPE == 'seperate') {
+        counter <- 0
+        for (db.path in SELECTED.DBs) {
+          db.name <- basename(db.path)
+          counter <- counter + 1
+          #header
+          print_headerDB(type="DB", header = paste0(db.name, " - ", counter, "/", length(SELECTED.DBs)), top = TRUE)
+          #conn
+          myconn <- get_db_conn(db.path = db.path)
+          if (is.null(myconn)) {
+            msg <- paste('CONNECTION TO DB:', db.path, 'COULD NOT BE STABLISHED! (skipped)')
+            warning(msg)
+            next
+          }
+          scenario.name <- get_recent_scenario(myconn = myconn)
+          #env
+          print_env(db.path = db.path, scenario.name = scenario.name)
+          #processing
+          process_queries(myconn, db.path, MAIN.QUERY, queries=SELECTED.QUERIES, scenario = scenario.name, QUERY.BY = QUERY.BY, output.path = output.path)
+          #end
+          print_headerDB(type="DB", header = NULL, top = FALSE)
+          }
+          }else if(RUN.TYPE == 'aggregate'){
+          #set connections for all SELECTED.DBs
+          for (query in names(SELECTED.QUERIES)) {
+            query.name <- names(SELECTED.QUERIES[[query]])
+            #header
+            print_headerDB(type="QUERY", header = paste0(query.name, " - ", query, "/", length(SELECTED.QUERIES)), top = TRUE)
+            
+            #build query
+            query.query <- buid_query(query.title = query.name, MAIN.QUERY = MAIN.QUERY)
+            #processing
+            process_dbs(SELECTED.QUERIES[query], SELECTED.DBs, query.query, output.path)
+            #end
+            print_headerDB(type="QUERY", header = NULL, top = FALSE)
+          }        
+      }
+      print_headerExecution(top = FALSE)
+    }
 }
+
+process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
+  selected.dbs.connections <- list() #list(<db_name>:<connection instance>, )
+  query.number <- names(query)
+  query.title <- names(query[[1]])
+  query.xml <- unlist(unname(query[[1]]))
+  
+  for(db.path in SELECTED.DBs){
+    conn <- get_db_conn(db.path = db.path)
+    if (is.null(conn)) {
+      msg <- paste('CONNECTION TO DB:', db.path, 'COULD NOT BE STABLISHED! (skipped)\n')
+      warning(msg)
+      next
+    }
+    selected.dbs.connections[[basename(db.path)]] <- conn
+  }
+  
+  if(!length(selected.dbs.connections)){
+    msg <- paste('NO CONNECTION WAS STABLISHED! (abort)\n')
+    stop(msg)
+  }
+  output.table <- list()
+  counter <- 0
+  for(conn in names(selected.dbs.connections)){
+    db.name <- conn
+    db.conn <- selected.dbs.connections[[conn]]
+    counter <- counter + 1
+    scenario.name <- get_recent_scenario(myconn = db.conn)
+    
+    #processing
+    result <- process_db(myconn=db.conn, scenario = scenario.name,
+                  query = query.query, db.title = db.name, db.counter = counter)
+    if(!length(output.table)){
+      output.table <- result
+    }else{
+      output.table <- data.table::rbindlist(list(output.table, result))
+    }
+    cat("---\n")
+  }
+  output.filename <- paste0('Q_', names(query), ".csv")
+  write_output(result = output.table, output.filename = output.filename, output.path = output.path)
+}
+
+process_db <- function(myconn, scenario, query, db.title, db.counter){
+  print_headerQuery(type="DB", counter=db.counter, title=db.title, scenario.name = scenario)
+
+  if(!is.null(query)){
+    result <- get_table(myconn, query, scenario = scenario)
+    return(result)
+  }else{
+    print("ERROR IN DETECTING THE QUERY!", quote=FALSE)
+  }
+}
+
 
 get_table <- function(myconn, query, scenario){
   if(is.null(REGIONS)){REGIONS <- NULL}
@@ -152,39 +195,30 @@ get_table <- function(myconn, query, scenario){
 }
 
 #queries
-process_queries <- function(myconn, db.path, MAIN.QUERY, queries_xml, scenario, QUERY.BY, output.path){
+process_queries <- function(myconn, db.path, MAIN.QUERY, queries, scenario, QUERY.BY, output.path){
   #TODO:
   # loop through SELECTED.QUERIES instead - improve speed
-  for(query.counter in names(queries_xml)){
-    if(length(SELECTED.QUERIES) > 0 & !as.integer(query.counter) %in% SELECTED.QUERIES){
-      next
-    }
+  for(query.counter in names(queries)){
     #output.filename: <Q#>_<db_foldername>
     output.filename <- paste0("Q", query.counter, "_", basename(db.path), ".csv")
-
-    query.title <- names(queries_xml[[query.counter]])
+    
+    query.title <- names(queries[[query.counter]])
     #TODO:
     # NO need when QUERY.BY title
-    query.xml <- queries_xml[[query.counter]][[query.title]]
+    query.xml <- queries[[query.counter]][[query.title]]
     
     query.query <- buid_query(query.title = query.title, MAIN.QUERY = MAIN.QUERY)
     
     process_query(myconn, scenario = scenario,
                   output.filename = output.filename, output.path = output.path,
-                  QUERY.BY = QUERY.BY, query.xml = query.xml, query.query = query.query, query.title = query.title,
+                  QUERY.BY = QUERY.BY, query.xml = query.xml, query= query.query, query.title = query.title,
                   query.counter = query.counter)
     cat("---\n")
   }
 }
 
-process_query <- function(myconn, scenario, output.filename, output.path, QUERY.BY, query.xml, query.query, query.title, query.counter){
-  print_headerQuery(query.counter, query.title)
-  query <- NULL
-  if(QUERY.BY == "title"){
-    query <- query.query
-  }else if(QUERY.BY == "xml"){
-    query = query.xml
-  }
+process_query <- function(myconn, scenario, output.filename, output.path, QUERY.BY, query.xml, query, query.title, query.counter){
+  print_headerQuery(type="QUERY", counter=query.counter, title=query.title)
   
   if(!is.null(query)){
     result <- get_table(myconn, query, scenario = scenario)
@@ -218,7 +252,9 @@ get_db_conn <- function(db.path){
   myconn <- NULL
   try(
     {
-      myconn <- localDBConn(dbPath = dirname(db.path), dbFile = basename(db.path))
+      log <- capture.output({
+        myconn <- localDBConn(dbPath = dirname(db.path), dbFile = basename(db.path))
+      },type = c('message'))
     }, silent = TRUE)
   
   if(is.null(myconn)){
@@ -234,9 +270,9 @@ get_recent_scenario <- function(myconn){
 }
 
 #prints
-print_headerDB <- function(header, top){
+print_headerDB <- function(type, header, top = TRUE){
   if(top){
-    cat(paste0("\n*-*-* [ DB: ",header," ] *-*-*", "\n\n"))
+    cat(paste0("\n*-*-* [ ", type,": ",header," ] *-*-*", "\n\n"))
   }
   else{
     cat(paste0("\n*-*-*", "\n"))
@@ -254,17 +290,18 @@ print_headerExecution <- function(top){
   }
 }
 
-print_headerQuery <- function(query.counter, query.title){
-  query.decoration <- paste0("\nQUERY_", query.counter, ": ", query.title, "\n")
+print_headerQuery <- function(type, counter, title, scenario.name=""){
+  if(type=="DB"){
+  query.decoration <- paste0("\n", type, "_", counter, ": ", title," [scenario: ",scenario.name, "]", "\n")
+  }else{
+    query.decoration <- paste0("\n", type, "_", counter, ": ", title, "\n")
+  }
   cat(query.decoration)
 }
 
-print_env <- function(db.path, MAIN.QUERY, scenario.name){
+print_env <- function(db.path, scenario.name){
   #DB_PATH
   print(paste0("DB_PATH: ", db.path), quote=FALSE)
-  
-  #MAIN_QUERY
-  print(paste0("MAIN_QUERY: ", MAIN.QUERY), quote=FALSE)
   
   #SCENARIO
   print(paste0("ON_SCENARIO: ", scenario.name), quote=FALSE)
@@ -343,6 +380,95 @@ tryCatch(
           )
         )
       }
+      #under testing
+      validation_selected_dbs <- function(SELECTED.DBs, db.path) {
+        #return a list of available paths for selected dbs
+        list_dbs <-
+          list.dirs(path = db.path,
+                    recursive = FALSE,
+                    full.names = TRUE)
+        #TODO:
+        # restricting the name init. to database_ can be eliminated
+        list_dbs <-
+          grep(pattern = ".*(database_)",
+              x = list_dbs,
+              value = TRUE)
+        
+        if (!length(list_dbs)) {
+          msg <-
+            paste('No dbs are available in the folder:',
+                  db.path)
+          stop(msg, call. = FALSE)
+        }
+        
+        selected.dbs.available <- list()
+        if (length(SELECTED.DBs)) {
+          for (db in list_dbs) {
+            if (basename(db) %in% SELECTED.DBs) {
+              selected.dbs.available[basename(db)] <- normalizePath(db)
+            }
+          }
+          notfound <- setdiff(SELECTED.DBs, names(selected.dbs.available))
+          
+          if (length(notfound) == length(SELECTED.DBs)) {
+            msg <-
+              paste('None of SELECTED.DBs are available in the folder:',
+                    db.path)
+            stop(msg, call. = FALSE)
+          }
+          else if (length(notfound)) {
+            msg <-
+              paste('\nNOTE: The following dbs in SELECTED.DBs are not found:',
+                    '\n')
+            cat(msg)
+            msg <- paste0(notfound, '\n')
+            cat(msg)
+          }
+          list_dbs <- unname(unlist(selected.dbs.available))
+        }
+        return(list_dbs)
+      }
+      validation_selected_queries <- function(SELECTED.QUERIES, queries_xml) {
+        if (!length(queries_xml)) {
+          msg <-
+            paste('Queries xml list is empty!', '\n')
+          stop(msg, call. = FALSE)
+        }
+        queries <- list()
+        
+        # if(class(SELECTED.QUERIES) != 'numeric' & class(SELECTED.QUERIES) != 'NULL' ){
+        #   msg <-
+        #     paste('SELECTED.QUERIES is not of numeric type!', '\n')
+        #   stop(msg, call. = FALSE)
+        # }
+        
+        if (length(SELECTED.QUERIES)) {
+          notfound <-
+            setdiff(SELECTED.QUERIES, as.integer(names(queries_xml)))
+          found <-
+            intersect(SELECTED.QUERIES, as.integer(names(queries_xml)))
+          
+          if (!length(found)) {
+            msg <-
+              paste('None of SELECTED.QUERIES are available in the queries xml list:','\n')
+            stop(msg, call. = FALSE)
+          }
+          else if (length(notfound)) {
+            msg <-
+              paste('\nNOTE: The following queries numbers in SELECTED.QUERIES are not found:', '\n')
+            cat(msg)
+            msg <- paste0(notfound, '\n')
+            cat(msg)
+          }
+          for (q in as.character(found)) {
+            queries[q] <- queries_xml[q]
+          }
+        }
+        else{
+          queries <- queries_xml
+        }
+        return(queries)
+      }
 
       #terminal input
       input.full <- commandArgs(trailingOnly = FALSE)
@@ -376,17 +502,37 @@ tryCatch(
       
       MAIN.QUERY <- validation_path(MAIN.QUERY, path_type = "file")
       #validation_variables_stop(SELECTED.QUERIES, name = "config/SELECTED.QUERIES")
-      validation_variables_warning(REGIONS, name = "config/REGIONS")
+      #validation_variables_warning(REGIONS, name = "config/REGIONS")
       validation_variables_stop(queries_xml, name = "config/queries_xml")
       
+      #under testing
+      SELECTED.DBs <-
+        validation_selected_dbs(SELECTED.DBs, db.path)
+      SELECTED.QUERIES <-
+        validation_selected_queries(SELECTED.QUERIES, queries_xml)
+      
+      if (is.null(QUERY.BY) | !length(QUERY.BY)) {
+        QUERY.BY <- "title"
+      }
+      if (is.null(QUERY.BY) | !length(REGIONS)) {
+        REGIONS <- c('Global')
+      }
+      if (is.null(QUERY.BY) | !length(RUN.TYPE)) {
+        RUN.TYPE <- "seperate"
+      }
       return(
         list(
           "script.path" = script.path,
           "script.name" = script.name,
           "script.dir" = script.dir,
           "MAIN.QUERY" = MAIN.QUERY,
-          "execution.type" = execution.type, 
-          "db.path" = db.path
+          "execution.type" = execution.type,
+          "db.path" = db.path,
+          "SELECTED.DBs" = SELECTED.DBs,
+          "SELECTED.QUERIES" = SELECTED.QUERIES, 
+          "RUN.TYPE" = RUN.TYPE, 
+          "REGIONS" = REGIONS, 
+          "QUERY.BY" = QUERY.BY
         )
       )
     }
@@ -398,7 +544,13 @@ tryCatch(
     script.dir <- validated.values[["script.dir"]]
     MAIN.QUERY <- validated.values[["MAIN.QUERY"]]
     execution.type <- validated.values[["execution.type"]]
-    
+    SELECTED.DBs <- validated.values[["SELECTED.DBs"]]
+    SELECTED.QUERIES <- validated.values[["SELECTED.QUERIES"]]
+
+    RUN.TYPE <- validated.values[["RUN.TYPE"]]
+    REGIONS <- validated.values[["REGIONS"]]
+    QUERY.BY <- validated.values[["QUERY.BY"]]
+
     #folder/db info
     db.path <- validated.values[["db.path"]]
     db.name <- basename(db.path)
@@ -419,24 +571,39 @@ tryCatch(
     sink(log.file, append = TRUE, type = "output", split = TRUE) # Writing console output to log file
  
     print(paste("TIMESTAMP:", Saudi.time), quote=FALSE)
+    print(paste("MAIN_QUERY:", MAIN.QUERY), quote=FALSE)
     print(paste("OUTPUT.DIR:", output.path), quote=FALSE)
     print(paste("LOG.PATH:", log.path), quote=FALSE)
     
-    selected <- if(length(SELECTED.QUERIES)) SELECTED.QUERIES else 'ALL'
-    print("SELECTED.QUERIES:", quote=FALSE)
-    print(selected, quote=FALSE)
-
-    selected <- if(length(SELECTED.DBs)) SELECTED.DBs else 'ALL'
-    print("SELECTED.DBs:", quote=FALSE)
-    print(selected, quote=FALSE)
+    selected <- NULL
+    if (length(SELECTED.QUERIES)){
+      selected <- as.integer(names(SELECTED.QUERIES))
+    }else{
+      selected <- 'ALL'
+    }
     
-    selected <- if(length(REGIONS)) REGIONS else 'Global'
-    print("REGIONS:", quote=FALSE)
-    print(selected, quote=FALSE)
-    
-    if(is.null(QUERY.BY)){
-      QUERY.BY <- "title" 
-      }
+  print("SELECTED.QUERIES:", quote = FALSE)
+  print(selected, quote = FALSE)
+  
+  if (length(SELECTED.DBs)){
+    selected <- NULL
+    for(db in SELECTED.DBs){
+        selected <- c(selected, basename(db))
+    }
+  }
+  else{
+    selected <- 'ALL'
+  }
+  print("SELECTED.DBs:", quote = FALSE)
+  print(selected, quote = FALSE)
+  
+  selected <- REGIONS
+  print("REGIONS:", quote = FALSE)
+  print(selected, quote = FALSE)
+  
+  selected <- RUN.TYPE
+  print("RUN.TYPE:", quote = FALSE)
+  print(selected, quote = FALSE)
     
     main(db.path = db.path, execution.type = execution.type, queries_xml = queries_xml, output.path = output.path, MAIN.QUERY = MAIN.QUERY, QUERY.BY = QUERY.BY)
   }, 

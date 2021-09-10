@@ -2,29 +2,36 @@
 # Select queries to run: 
 # SELECTED.QUERIES <- c(7, 9): runs query number 7 and 9 
 # SELECTED.QUERIES <- c(2:5): runs queries from 2 to 5
-# SELECTED.QUERIES <- c() or NULL : runs all queries in queries_xml list
+# SELECTED.QUERIES <- c() or NULL : runs all queries in queries_xml list (default)
 SELECTED.QUERIES <- NULL
 
 #DATABASES
 # Select dbs to query: list the names of the dbs name
 # SELECTED.DBs <- c("database_basexdb_5p4_nze02", ..): runs query on db name: "database_basexdb_5p4_nze02" 
-# SELECTED.DBs <- c() or NULL for all dbs in the folder
+# SELECTED.DBs <- c() or NULL for all dbs in the folder (default)
 SELECTED.DBs <- c() 
+
+#RUN TYPE = {'seperate', 'aggregate'}
+# seperate: each query for reach db is placed in a file
+# aggregate: result of running a query on all dbs is placed in a file
+RUN.TYPE <- "seperate" 
 
 #MAIN_QUERY 
 # file where original queries are placed in gcam/output folder. Uses forward-slash path seperator i.e. "/"
 # MAIN.QUERY <- "/path/to/Main_queries.xml"
+# Note: a path to main query file must be provided
 MAIN.QUERY <- NULL
 
 #QUERY.BY
 # QUERY.BY takes either "title" or "xml"
-# title: the query's title (in queries_xml list) will be used to extract the query's xml (from Main_queries.xml)
+# title: the query's title (in queries_xml list) will be used to extract the query's xml from MAIN.QUERY file. (default)
 # xml: the actual xml query (provided in queries_xml list) will be used to to run the query 
 QUERY.BY <- "title"
 
 #REGIONS 
 # Specify the region(s) to run on. 
-# REGIONS <- c() means global or c('USA', 'Canada') for any set of countries
+# REGIONS <- c('USA', 'Canada') for any set of countries such as USA and Canada
+# REGIONS <- c() or NULL means Global region (default)
 REGIONS <- c('Global')
 
 
