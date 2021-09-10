@@ -50,18 +50,24 @@ Query title is used when are querying the Main.Query using the title to fetch th
 MAIN_QUERY file to read the query from. Uses forward-slash path seperator i.e. "/"
 MAIN.QUERY <- "/path/to/Main_queries.xml"
 
-To select some of the queries to run from the list queries_xml, we configure ONLY_RUN vector by providing the queries numbers we want to run.
+To select the queries to run from the list queries_xml, configure the vector SELECTED.QUERIES by including the queries numbers. Assigning c() or NULL means include all queries in the list.
                   
-Example: <code>ONLY_RUN <- c(7, 9)</code> to run queries 7 and 9
+Example: <code>SELECTED.QUERIES <- c(7, 9)</code> to run queries 7 and 9
    
-Example: <code>ONLY_RUN <- c(1:18)</code> to run the 18 queries listed in the config.R
+Example: <code>SELECTED.QUERIES <- c(1:18)</code> to run the 18 queries listed in the config.R
     
-We also can specify regions to query by listing the regions (including Global) or leave empty to run all regions <code>c()</code>
+To select subset of the databases in the folder, list the name of the databases or leave empty to run all folders:
+
+<code>SELECTED.DBs <- c("database_02", ..)</code> : runs query on db name: "database_02" 
+<code>SELECTED.DBs <- c() or NULL </code>: for all dbs in the folder
+
+To specify the regions to query, lists the regions (including Global) or leave empty (c() or NULL) to run all regions:
 
 Example: <code> REGIONS <- c('USA', 'Canada') </code> for USA and Canada regions.
     
 Example: <code> REGIONS <- c('Global') </code> for Global region.
-    
+
+
 ### Part 3: Logging
 
     Coming soon..
