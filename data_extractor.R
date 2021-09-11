@@ -82,6 +82,7 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
           }        
       }
       print_headerExecution(top = FALSE)
+      write.csv(log.getTable(), file = paste0(output.path,"/analytics.csv"),  row.names = FALSE)
     }
 }
 
@@ -114,14 +115,24 @@ process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
     scenario.name <- get_recent_scenario(myconn = db.conn)
     
     #processing
-    result <- process_db(myconn=db.conn, scenario = scenario.name,
+    analytics <- process_db(myconn=db.conn, scenario = scenario.name,
                   query = query.query, db.title = db.name, db.counter = counter)
     if(!length(output.table)){
-      output.table <- result
+      output.table <- analytics[["result"]]
     }else{
-      output.table <- data.table::rbindlist(list(output.table, result))
+      output.table <- data.table::rbindlist(list(output.table, analytics[["result"]]))
     }
     cat("---\n")
+
+    log.table <- log.addRecord(
+      Query.number = names(query), 
+      Query.name = query.title, 
+      DB.name = db.name,
+      Scenario.name = scenario.name,
+      Succeed = ifelse(analytics[["Success"]], TRUE, FALSE),
+      Output.filename = paste0('Q_', names(query), ".csv"),
+      ExecEnd = analytics[["ExecEnd"]], 
+      ExecStart = analytics[["ExecStart"]]
   }
   output.filename <- paste0('Q_', names(query), ".csv")
   write_output(result = output.table, output.filename = output.filename, output.path = output.path)
@@ -131,11 +142,22 @@ process_db <- function(myconn, scenario, query, db.title, db.counter){
   print_headerQuery(type="DB", counter=db.counter, title=db.title, scenario.name = scenario)
 
   if(!is.null(query)){
+    ExecStart <- Sys.time()
     result <- get_table(myconn, query, scenario = scenario)
-    return(result)
+    ExecEnd <- Sys.time()
+    Success <- length(result)>0
+    #return(result)
   }else{
+    Success <- FALSE
     print("ERROR IN DETECTING THE QUERY!", quote=FALSE)
   }
+  
+  return(list(
+    "ExecStart" = ExecStart, 
+    "ExecEnd" = ExecEnd, 
+    "Success" = Success, 
+    "result" = result
+  ))
 }
 
 
@@ -209,10 +231,19 @@ process_queries <- function(myconn, db.path, MAIN.QUERY, queries, scenario, QUER
     
     query.query <- buid_query(query.title = query.title, MAIN.QUERY = MAIN.QUERY)
     
-    process_query(myconn, scenario = scenario,
+    analytics <- process_query(myconn, scenario = scenario,
                   output.filename = output.filename, output.path = output.path,
                   QUERY.BY = QUERY.BY, query.xml = query.xml, query= query.query, query.title = query.title,
                   query.counter = query.counter)
+    log.table <- log.addRecord(
+      Query.number = query.counter, 
+      Query.name = query.title, 
+      DB.name = basename(db.path),
+      Scenario.name = scenario,
+      Succeed = ifelse(analytics[["Success"]], TRUE, FALSE),
+      Output.filename = output.filename,
+      ExecEnd = analytics[["ExecEnd"]], 
+      ExecStart = analytics[["ExecStart"]])
     cat("---\n")
   }
 }
@@ -221,11 +252,20 @@ process_query <- function(myconn, scenario, output.filename, output.path, QUERY.
   print_headerQuery(type="QUERY", counter=query.counter, title=query.title)
   
   if(!is.null(query)){
+    ExecStart <- Sys.time()
     result <- get_table(myconn, query, scenario = scenario)
+    ExecEnd <- Sys.time()
+    Success <- length(result)>0
     write_output(result = result, output.filename = output.filename, output.path = output.path)
   }else{
     print("ERROR IN DETECTING THE QUERY!", quote=FALSE)
+    Success <- FALSE
   }
+  return(list(
+    "ExecStart" = ExecStart, 
+    "ExecEnd" = ExecEnd, 
+    "Success" = Success
+  ))
 }
 
 buid_query <- function(query.title, MAIN.QUERY){
@@ -499,6 +539,9 @@ tryCatch(
       
       validation_config(source(config.path))
       source(config.path)
+
+      source('logging.R')
+
       
       MAIN.QUERY <- validation_path(MAIN.QUERY, path_type = "file")
       #validation_variables_stop(SELECTED.QUERIES, name = "config/SELECTED.QUERIES")
