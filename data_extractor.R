@@ -11,12 +11,12 @@ library(rgcam)
 
 #FUNCTIONS -----------------------------------------------------------------------
 main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, QUERY.BY) {
-    print_headerExecution(top = TRUE)
+    log.executionHeaderPrint(top = TRUE)
     
     if (execution.type == "db") {
       #run on a single db
       #header
-      print_headerDB(type="DB", header = basename(db.path), top = TRUE)
+      log.rootHeaderPrint(type="DB", header = basename(db.path), top = TRUE)
       #conn
       myconn <- get_db_conn(db.path = db.path)
       
@@ -26,7 +26,7 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
       
       scenario.name <- get_recent_scenario(myconn = myconn)
       #env
-      print_env(
+      log.envPrint(
         db.path = db.path,
         scenario.name = scenario.name
       )
@@ -41,7 +41,7 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
         output.path = output.path
       )
       #end
-      print_headerDB(type="DB", header = NULL, top = FALSE)
+      log.rootHeaderPrint(type="DB", header = NULL, top = FALSE)
     }
     else if (execution.type == "recursive") {
       if (RUN.TYPE == 'seperate') {
@@ -50,7 +50,7 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
           db.name <- basename(db.path)
           counter <- counter + 1
           #header
-          print_headerDB(type="DB", header = paste0(db.name, " - ", counter, "/", length(SELECTED.DBs)), top = TRUE)
+          log.rootHeaderPrint(type="DB", header = paste0(db.name, " - ", counter, "/", length(SELECTED.DBs)), top = TRUE)
           #conn
           myconn <- get_db_conn(db.path = db.path)
           if (is.null(myconn)) {
@@ -60,29 +60,29 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
           }
           scenario.name <- get_recent_scenario(myconn = myconn)
           #env
-          print_env(db.path = db.path, scenario.name = scenario.name)
+          log.envPrint(db.path = db.path, scenario.name = scenario.name)
           #processing
           process_queries(myconn, db.path, MAIN.QUERY, queries=SELECTED.QUERIES, scenario = scenario.name, QUERY.BY = QUERY.BY, output.path = output.path)
           #end
-          print_headerDB(type="DB", header = NULL, top = FALSE)
+          log.rootHeaderPrint(type="DB", header = NULL, top = FALSE)
           }
           }else if(RUN.TYPE == 'aggregate'){
           #set connections for all SELECTED.DBs
           for (query in names(SELECTED.QUERIES)) {
             query.name <- names(SELECTED.QUERIES[[query]])
             #header
-            print_headerDB(type="QUERY", header = paste0(query.name, " - ", query, "/", length(SELECTED.QUERIES)), top = TRUE)
+            log.rootHeaderPrint(type="QUERY", header = paste0(query.name, " - ", query, "/", length(SELECTED.QUERIES)), top = TRUE)
             
             #build query
             query.query <- buid_query(query.title = query.name, MAIN.QUERY = MAIN.QUERY)
             #processing
             process_dbs(SELECTED.QUERIES[query], SELECTED.DBs, query.query, output.path)
             #end
-            print_headerDB(type="QUERY", header = NULL, top = FALSE)
+            log.rootHeaderPrint(type="QUERY", header = NULL, top = FALSE)
           }        
       }
-      print_headerExecution(top = FALSE)
-      write.csv(log.getTable(), file = paste0(output.path,"/analytics.csv"),  row.names = FALSE)
+      log.executionHeaderPrint(top = FALSE)
+      log.writeCSV(file.name="logTable.csv",  file.path=output.path)
     }
 }
 
@@ -139,7 +139,7 @@ process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
 }
 
 process_db <- function(myconn, scenario, query, db.title, db.counter){
-  print_headerQuery(type="DB", counter=db.counter, title=db.title, scenario.name = scenario)
+  log.nodeHeaderPrint(type="DB", counter=db.counter, title=db.title, scenario.name = scenario)
 
   if(!is.null(query)){
     ExecStart <- Sys.time()
@@ -249,7 +249,7 @@ process_queries <- function(myconn, db.path, MAIN.QUERY, queries, scenario, QUER
 }
 
 process_query <- function(myconn, scenario, output.filename, output.path, QUERY.BY, query.xml, query, query.title, query.counter){
-  print_headerQuery(type="QUERY", counter=query.counter, title=query.title)
+  log.nodeHeaderPrint(type="QUERY", counter=query.counter, title=query.title)
   
   if(!is.null(query)){
     ExecStart <- Sys.time()
@@ -308,46 +308,6 @@ get_recent_scenario <- function(myconn){
   lastScenarioLongname <- lastScenarioRunInfo["fqName"]$fqName
   lastScenarioLongname
 }
-
-#prints
-print_headerDB <- function(type, header, top = TRUE){
-  if(top){
-    cat(paste0("\n*-*-* [ ", type,": ",header," ] *-*-*", "\n\n"))
-  }
-  else{
-    cat(paste0("\n*-*-*", "\n"))
-  }
-}
-
-print_headerExecution <- function(top){
-  if(top){
-    exec.decoration <- paste0("\n--------------------------------[", "EXECUTION STARTED", "]--------------------------------", "\n")
-    cat(exec.decoration)
-  }
-  else{
-    exec.decoration <- paste0("\n--------------------------------[", "EXECUTION FINISHED", "]--------------------------------", "\n")
-    cat(exec.decoration)
-  }
-}
-
-print_headerQuery <- function(type, counter, title, scenario.name=""){
-  if(type=="DB"){
-  query.decoration <- paste0("\n", type, "_", counter, ": ", title," [scenario: ",scenario.name, "]", "\n")
-  }else{
-    query.decoration <- paste0("\n", type, "_", counter, ": ", title, "\n")
-  }
-  cat(query.decoration)
-}
-
-print_env <- function(db.path, scenario.name){
-  #DB_PATH
-  print(paste0("DB_PATH: ", db.path), quote=FALSE)
-  
-  #SCENARIO
-  print(paste0("ON_SCENARIO: ", scenario.name), quote=FALSE)
-  noquote(" ")
-}
-
 
 
 #EXECUTION ------------------------------------------------------------------------
@@ -540,7 +500,8 @@ tryCatch(
       validation_config(source(config.path))
       source(config.path)
 
-      source('logging.R')
+      logging.path <- paste0(this.dir, "/", "logging.R")
+      source(logging.path)
 
       
       MAIN.QUERY <- validation_path(MAIN.QUERY, path_type = "file")

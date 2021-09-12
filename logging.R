@@ -48,3 +48,46 @@ log.addRecord <- function(
 log.getTable <- function(){
   return(log.table)
 }
+
+log.writeCSV <- function(file.name, file.path){
+  write.csv(log.getTable(), file = paste0(file.path,"/", file.name),  row.names = FALSE)
+}
+
+#prints
+log.executionHeaderPrint <- function(top){
+  if(top){
+    exec.decoration <- paste0("\n--------------------------------[", "EXECUTION STARTED", "]--------------------------------", "\n")
+    cat(exec.decoration)
+  }
+  else{
+    exec.decoration <- paste0("\n--------------------------------[", "EXECUTION FINISHED", "]--------------------------------", "\n")
+    cat(exec.decoration)
+  }
+}
+
+log.rootHeaderPrint <- function(type, header, top = TRUE){
+  if(top){
+    cat(paste0("\n*-*-* [ ", type,": ",header," ] *-*-*", "\n\n"))
+  }
+  else{
+    cat(paste0("\n*-*-*", "\n"))
+  }
+}
+
+log.nodeHeaderPrint <- function(type, counter, title, scenario.name=""){
+  if(type=="DB"){
+    query.decoration <- paste0("\n", type, "_", counter, ": ", title," [scenario: ",scenario.name, "]", "\n")
+  }else{
+    query.decoration <- paste0("\n", type, "_", counter, ": ", title, "\n")
+  }
+  cat(query.decoration)
+}
+
+log.envPrint <- function(db.path, scenario.name){
+  #DB_PATH
+  print(paste0("DB_PATH: ", db.path), quote=FALSE)
+  
+  #SCENARIO
+  print(paste0("ON_SCENARIO: ", scenario.name), quote=FALSE)
+  noquote(" ")
+}
