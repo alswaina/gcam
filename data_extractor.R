@@ -128,6 +128,7 @@ process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
       Query.number = names(query), 
       Query.name = query.title, 
       DB.name = db.name,
+      Regions = REGIONS,
       Scenario.name = scenario.name,
       Succeed = ifelse(analytics[["Success"]], TRUE, FALSE),
       Output.filename = paste0('Q_', names(query), ".csv"),
@@ -235,9 +236,10 @@ process_queries <- function(myconn, db.path, MAIN.QUERY, queries, scenario, QUER
                   output.filename = output.filename, output.path = output.path,
                   QUERY.BY = QUERY.BY, query.xml = query.xml, query= query.query, query.title = query.title,
                   query.counter = query.counter)
-    log.table <- log.addRecord(
+      log.table <- log.addRecord(
       Query.number = query.counter, 
       Query.name = query.title, 
+      Regions = REGIONS,
       DB.name = basename(db.path),
       Scenario.name = scenario,
       Succeed = ifelse(analytics[["Success"]], TRUE, FALSE),
