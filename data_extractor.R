@@ -132,7 +132,7 @@ process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
       Succeed = ifelse(analytics[["Success"]], TRUE, FALSE),
       Output.filename = paste0('Q_', names(query), ".csv"),
       ExecEnd = analytics[["ExecEnd"]], 
-      ExecStart = analytics[["ExecStart"]]
+      ExecStart = analytics[["ExecStart"]])
   }
   output.filename <- paste0('Q_', names(query), ".csv")
   write_output(result = output.table, output.filename = output.filename, output.path = output.path)
