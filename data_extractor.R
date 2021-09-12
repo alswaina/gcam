@@ -108,6 +108,11 @@ process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
   }
   output.table <- list()
   counter <- 0
+
+  query.title.cleanup <- stringi::stri_replace_all(query.title, regex = " ", "_") 
+  query.title.cleanup <- stringi::stri_replace_all(query.title.cleanup, regex = "[)()]", "")
+  output.filename <- paste0('Q_', query.number, "__", query.title.cleanup, ".csv")
+
   for(conn in names(selected.dbs.connections)){
     db.name <- conn
     db.conn <- selected.dbs.connections[[conn]]
@@ -131,11 +136,10 @@ process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
       Regions = REGIONS,
       Scenario.name = scenario.name,
       Succeed = ifelse(analytics[["Success"]], TRUE, FALSE),
-      Output.filename = paste0('Q_', names(query), ".csv"),
+      Output.filename = output.filename,
       ExecEnd = analytics[["ExecEnd"]], 
       ExecStart = analytics[["ExecStart"]])
   }
-  output.filename <- paste0('Q_', names(query), ".csv")
   write_output(result = output.table, output.filename = output.filename, output.path = output.path)
 }
 
