@@ -315,6 +315,7 @@ tryCatch(
   {
 
     #validate configuration file
+    #validate configuration file
     validation.check <- function(){
       validation_config <- function(val){
         tryCatch({
@@ -357,21 +358,56 @@ tryCatch(
           warning(paste("Empty value:", name), call. = FALSE)
         }
       }
-      validation_args <- function(args){
+      validation_args_config <- function(args){
         # test if there is at least one argument: if not, return an error
-        if(length(args) == 0){
-          stop("Please provide the DB_PATH or DBs_FOLDER as following: Rscript <file_script.R> [-d <DB_PATH> | -f <DBs_FOLDER>]", call. = FALSE)
+        
+        if(!length(args) %in% c(2,4)){
+          #added
+          stop("Please use the syntax: Rscript <file_script.R> [-c <CONFIG_PATH>] (-d <DB_PATH> | -f <DBs_FOLDER>)", call. = FALSE)
+        } else if(length(args) == 2 && args[1] %in% c('-d', '-f')){
+          # default config file at the current location
+          config.input = "./config.R"
+        }else if(length(args) == 4 & args[1] == "-c"){
+          # named config file
+          config.input = args[2]
+        }
+        else{
+          stop("Please use the syntax: Rscript <file_script.R> [-c <CONFIG_PATH>] (-d <DB_PATH> | -f <DBs_FOLDER>)", call. = FALSE)
+        }
+        
+        return(
+          list(
+            "config.input" = config.input
+          )
+        )
+      }
+      validation_args_db <- function(args){
+        # test if there is at least one argument: if not, return an error
+        if(!length(args) %in% c(2,4)){
+          #added
+          stop("Please provide the DB_PATH or DBs_FOLDER as following: Rscript <file_script.R> [-c <CONFIG_PATH>] [-d <DB_PATH> | -f <DBs_FOLDER>]", call. = FALSE)
         } else if(length(args) == 2){
-          # default output file
           if(args[1] == "-d"){
+            # default output file
             execution.type <- "db"
             db.path <- args[2]
           }else if(args[1] == "-f"){
             execution.type <- "recursive"
             db.path <- args[2]
+          }else{
+            stop("Expected (-d <DB_PATH> | -f <DBs_FOLDER>) following: Rscript <Rscript.R> [-c <CONFIG_PATH>] [-d <DB_PATH> | -f <DBs_FOLDER>]", call. = FALSE)
           }
-        } else{
-          stop("Please provide only one arguament to Rscript as following: Rscript <Rscript.R> [-d <DB_PATH> | -f <DBs_FOLDER>]", call. = FALSE)
+        }else if(length(args) == 4){
+          if(args[3] == "-d"){
+            # default output file
+            execution.type <- "db"
+            db.path <- args[4]
+          }else if(args[3] == "-f"){
+            execution.type <- "recursive"
+            db.path <- args[4]
+          }else{
+            stop("Expected (-d <DB_PATH> | -f <DBs_FOLDER>) following: Rscript <Rscript.R> [-c <CONFIG_PATH>] [-d <DB_PATH> | -f <DBs_FOLDER>]", call. = FALSE)
+          }
         }
         return(
           list(
@@ -380,6 +416,7 @@ tryCatch(
           )
         )
       }
+      
       #under testing
       validation_selected_dbs <- function(SELECTED.DBs, db.path) {
         #return a list of available paths for selected dbs
@@ -391,8 +428,8 @@ tryCatch(
         # restricting the name init. to database_ can be eliminated
         list_dbs <-
           grep(pattern = ".*(database_)",
-              x = list_dbs,
-              value = TRUE)
+               x = list_dbs,
+               value = TRUE)
         
         if (!length(list_dbs)) {
           msg <-
@@ -469,19 +506,23 @@ tryCatch(
         }
         return(queries)
       }
-
+      
       #terminal input
       input.full <- commandArgs(trailingOnly = FALSE)
       args <- commandArgs(trailingOnly = TRUE)
-
-      #args validation
-      result.input <- validation_args(args)
-
-      execution.type <-  result.input[["execution.type"]]
-
-      db.path <-  result.input[["db.path"]]
-
+      
+      #args validation for db
+      db.input <- validation_args_db(args)
+      
+      #args validation for config file
+      config.input <- validation_args_config(args)
+      
+      execution.type <-  db.input[["execution.type"]]
+      db.path <-  db.input[["db.path"]]
+      config.input = config.input[["config.input"]]
+      
       db.path <- validation_path(db.path, path_type = 'folder')
+      config.path <- validation_path(config.input, path_type = 'file')
 
       #extract script path
       file.arg.name <- "--file="
@@ -495,14 +536,14 @@ tryCatch(
       this.dir <- getwd()
       
       #Validate & load configuration file
-      config.path <- paste0(this.dir, "/", "config.R")
+      #config.path <- paste0(this.dir, "/", "config.R")
       
       validation_config(source(config.path))
       source(config.path)
-
+      
       logging.path <- paste0(this.dir, "/", "logging.R")
       source(logging.path)
-
+      
       
       MAIN.QUERY <- validation_path(MAIN.QUERY, path_type = "file")
       #validation_variables_stop(SELECTED.QUERIES, name = "config/SELECTED.QUERIES")
@@ -536,7 +577,8 @@ tryCatch(
           "SELECTED.QUERIES" = SELECTED.QUERIES, 
           "RUN.TYPE" = RUN.TYPE, 
           "REGIONS" = REGIONS, 
-          "QUERY.BY" = QUERY.BY
+          "QUERY.BY" = QUERY.BY, 
+          "config.path" = config.path
         )
       )
     }
@@ -550,10 +592,12 @@ tryCatch(
     execution.type <- validated.values[["execution.type"]]
     SELECTED.DBs <- validated.values[["SELECTED.DBs"]]
     SELECTED.QUERIES <- validated.values[["SELECTED.QUERIES"]]
-
+    config.path <- validated.values[["config.path"]]
+    
     RUN.TYPE <- validated.values[["RUN.TYPE"]]
     REGIONS <- validated.values[["REGIONS"]]
     QUERY.BY <- validated.values[["QUERY.BY"]]
+    
 
     #folder/db info
     db.path <- validated.values[["db.path"]]
@@ -578,6 +622,7 @@ tryCatch(
     print(paste("MAIN_QUERY:", MAIN.QUERY), quote=FALSE)
     print(paste("OUTPUT.DIR:", output.path), quote=FALSE)
     print(paste("LOG.PATH:", log.path), quote=FALSE)
+    print(paste("CONFIG.PATH:", config.path), quote=FALSE)
     
     selected <- NULL
     if (length(SELECTED.QUERIES)){

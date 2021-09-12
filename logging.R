@@ -1,6 +1,7 @@
 log.table <- data.frame(
   Query.number = double(),
   Query.name = character(),
+  Regions = character(),
   DB.name = character(),
   Scenario.name = character(),
   Succeed = logical(),
@@ -13,6 +14,7 @@ log.initTable <- function(){
     data.frame(
       Query.number = double(),
       Query.name = character(),
+      Regions = character(),
       DB.name = character(),
       Scenario.name = character(),
       Succeed = logical(),
@@ -20,9 +22,11 @@ log.initTable <- function(){
       ExecTime = character()
     ))
 }
+
 log.addRecord <- function(
   Query.number,
   Query.name,
+  Regions,
   DB.name,
   Scenario.name,
   Succeed,
@@ -32,6 +36,7 @@ log.addRecord <- function(
   data <- data.frame(
     Query.number = Query.number, 
     Query.name = Query.name, 
+    Regions = I(list(Regions)),
     DB.name = DB.name,
     Scenario.name = Scenario.name,
     Succeed = Succeed,
@@ -40,8 +45,6 @@ log.addRecord <- function(
   )
   
   log.table <- rbind(log.table, data)
-  #print(log.table)
-  #return(log.table)
   assign("log.table", log.table, envir = .GlobalEnv)
 }
 
@@ -50,7 +53,7 @@ log.getTable <- function(){
 }
 
 log.writeCSV <- function(file.name, file.path){
-  write.csv(log.getTable(), file = paste0(file.path,"/", file.name),  row.names = FALSE)
+  write.table(log.getTable(), file = paste0(file.path,"/", file.name),  row.names = FALSE, sep = ';', quote = FALSE)
 }
 
 #prints
