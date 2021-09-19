@@ -4,6 +4,7 @@ log.table <- data.frame(
   Query.number = double(),
   Query.name = character(),
   Regions = character(),
+  Records.count = double(),
   DB.name = character(),
   Scenario.name = character(),
   Succeed = logical(),
@@ -17,6 +18,7 @@ log.initTable <- function(){
       Query.number = double(),
       Query.name = character(),
       Regions = character(),
+      Records.count = double(),
       DB.name = character(),
       Scenario.name = character(),
       Succeed = logical(),
@@ -30,6 +32,7 @@ log.addRecord <- function(
   Query.name,
   Regions,
   DB.name,
+  Records.count,
   Scenario.name,
   Succeed,
   Output.filename,
@@ -38,12 +41,14 @@ log.addRecord <- function(
   data <- data.frame(
     Query.number = Query.number, 
     Query.name = Query.name, 
-    Regions = I(list(Regions)),
     DB.name = DB.name,
+    Records.count = Records.count,
     Scenario.name = Scenario.name,
     Succeed = Succeed,
     Output.filename = Output.filename,
-    ExecTime = round(difftime(ExecEnd, ExecStart, units = "min"), 2)
+    ExecTime = round(difftime(ExecEnd, ExecStart, units = "min"), 2), 
+    
+    Regions = I(list(Regions))
   )
   
   log.table <- rbind(log.table, data)
