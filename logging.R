@@ -1,3 +1,5 @@
+library(xlsx, warn.conflicts = FALSE)
+
 log.table <- data.frame(
   Query.number = double(),
   Query.name = character(),
@@ -52,8 +54,12 @@ log.getTable <- function(){
   return(log.table)
 }
 
-log.writeCSV <- function(file.name, file.path){
-  write.table(log.getTable(), file = paste0(file.path,"/", file.name),  row.names = FALSE, sep = ';', quote = FALSE)
+log.write <- function(file.name, file.path) {
+  write.xlsx2(
+    x =  log.getTable(),
+    file = paste0(file.path, "/", file.name),
+    row.names = FALSE
+  )
 }
 
 #prints

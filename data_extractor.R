@@ -4,7 +4,7 @@
 # Email   : alswaina.fahad@gmail.com
 
 #TODO:
-# improve prints functions' names: i.e. print_headerQuery => print_exc_header
+#
 
 #LIBRARIES ----------------------------------------------------------------------------------
 library(rgcam)
@@ -82,7 +82,7 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
           }        
       }
       log.executionHeaderPrint(top = FALSE)
-      log.writeCSV(file.name="logTable.csv",  file.path=output.path)
+      log.write(file.name=paste0("logTable_", basename(db.path), ".xlsx"),  file.path=output.path)
     }
 }
 
@@ -133,12 +133,13 @@ process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
       Query.number = names(query), 
       Query.name = query.title, 
       DB.name = db.name,
-      Regions = REGIONS,
+      Records.count = analytics[['Records']],
       Scenario.name = scenario.name,
       Succeed = ifelse(analytics[["Success"]], TRUE, FALSE),
       Output.filename = output.filename,
       ExecEnd = analytics[["ExecEnd"]], 
-      ExecStart = analytics[["ExecStart"]])
+      ExecStart = analytics[["ExecStart"]],
+      Regions = REGIONS)
   }
   write_output(result = output.table, output.filename = output.filename, output.path = output.path)
 }
@@ -151,6 +152,7 @@ process_db <- function(myconn, scenario, query, db.title, db.counter){
     result <- get_table(myconn, query, scenario = scenario)
     ExecEnd <- Sys.time()
     Success <- length(result)>0
+    Records <- nrow(result)
     #return(result)
   }else{
     Success <- FALSE
@@ -161,7 +163,8 @@ process_db <- function(myconn, scenario, query, db.title, db.counter){
     "ExecStart" = ExecStart, 
     "ExecEnd" = ExecEnd, 
     "Success" = Success, 
-    "result" = result
+    "result" = result, 
+    "Records" = Records
   ))
 }
 
@@ -243,13 +246,14 @@ process_queries <- function(myconn, db.path, MAIN.QUERY, queries, scenario, QUER
       log.table <- log.addRecord(
       Query.number = query.counter, 
       Query.name = query.title, 
-      Regions = REGIONS,
       DB.name = basename(db.path),
+      Records.count = analytics[['Records']],
       Scenario.name = scenario,
       Succeed = ifelse(analytics[["Success"]], TRUE, FALSE),
       Output.filename = output.filename,
       ExecEnd = analytics[["ExecEnd"]], 
-      ExecStart = analytics[["ExecStart"]])
+      ExecStart = analytics[["ExecStart"]], 
+      Regions = REGIONS)
     cat("---\n")
   }
 }
@@ -262,6 +266,7 @@ process_query <- function(myconn, scenario, output.filename, output.path, QUERY.
     result <- get_table(myconn, query, scenario = scenario)
     ExecEnd <- Sys.time()
     Success <- length(result)>0
+    Records <- nrow(result)
     write_output(result = result, output.filename = output.filename, output.path = output.path)
   }else{
     print("ERROR IN DETECTING THE QUERY!", quote=FALSE)
@@ -270,7 +275,8 @@ process_query <- function(myconn, scenario, output.filename, output.path, QUERY.
   return(list(
     "ExecStart" = ExecStart, 
     "ExecEnd" = ExecEnd, 
-    "Success" = Success
+    "Success" = Success, 
+    "Records" = Records
   ))
 }
 
