@@ -17,8 +17,8 @@ SELECTED.DBs <- c()
 RUN.TYPE <- "seperate" 
 
 #MAIN_QUERY 
-# file where original queries are placed in gcam/output folder. Uses forward-slash path seperator i.e. "/"
-# MAIN.QUERY <- "/path/to/Main_queries.xml"
+# file where original queries are placed in gcam/output folder. Use forward-slash path seperator i.e. "/"
+# MAIN.QUERY <- "./path/to/Main_queries.xml"
 # Note: a path to main query file must be provided
 MAIN.QUERY <- NULL
 
@@ -32,8 +32,8 @@ QUERY.BY <- "title"
 # Specify the region(s) to run on. 
 # REGIONS <- c('USA', 'Canada') for any set of countries such as USA and Canada
 # REGIONS <- c() or NULL means Global region (default)
-REGIONS <- c('Global')
-#REGIONS <- c("Africa_Eastern", "Africa_Northern", "Africa_Southern", "Africa_Western", "Argentina", "Australia_NZ", "Brazil", "Canada", "Central America and Caribbean", "Central Asia", "China", "Colombia", "EU-12", "EU-15", "Europe_Eastern", "Europe_Non_EU", "European Free Trade Association", "India", "Indonesia", "Japan", "Mexico", "Middle East", "Pakistan", "Russia", "South Africa", "South America_Northern", "South America_Southern", "South Asia", "South Korea", "Southeast Asia", "Taiwan", "USA")
+#REGIONS <- c('Global')
+REGIONS <- c("Africa_Eastern", "Africa_Northern", "Africa_Southern", "Africa_Western", "Argentina", "Australia_NZ", "Brazil", "Canada", "Central America and Caribbean", "Central Asia", "China", "Colombia", "EU-12", "EU-15", "Europe_Eastern", "Europe_Non_EU", "European Free Trade Association", "India", "Indonesia", "Japan", "Mexico", "Middle East", "Pakistan", "Russia", "South Africa", "South America_Northern", "South America_Southern", "South Asia", "South Korea", "Southeast Asia", "Taiwan", "USA")
 
 #QUERIES_XMLs 
 # SYNTAX: list( number = list (query.title = query.xml), ...)
