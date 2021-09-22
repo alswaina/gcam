@@ -152,7 +152,7 @@ process_db <- function(myconn, scenario, query, db.title, db.counter){
     result <- get_table(myconn, query, scenario = scenario)
     ExecEnd <- Sys.time()
     Success <- length(result)>0
-    Records <- nrow(result)
+    Records <- ifelse(Success, nrow(result), 0)
     #return(result)
   }else{
     Success <- FALSE
@@ -266,7 +266,7 @@ process_query <- function(myconn, scenario, output.filename, output.path, QUERY.
     result <- get_table(myconn, query, scenario = scenario)
     ExecEnd <- Sys.time()
     Success <- length(result)>0
-    Records <- nrow(result)
+    Records <- ifelse(Success, nrow(result), 0)
     write_output(result = result, output.filename = output.filename, output.path = output.path)
   }else{
     print("ERROR IN DETECTING THE QUERY!", quote=FALSE)
