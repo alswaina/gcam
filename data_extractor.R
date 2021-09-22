@@ -439,7 +439,7 @@ tryCatch(
         #TODO:
         # restricting the name init. to database_ can be eliminated
         list_dbs <-
-          grep(pattern = "^database_",
+          grep(pattern = "database_",
                x = list_dbs,
                value = TRUE)
         
