@@ -55,7 +55,7 @@ main <- function(db.path, execution.type, queries_xml, output.path, MAIN.QUERY, 
           myconn <- get_db_conn(db.path = db.path)
           if (is.null(myconn)) {
             msg <- paste('CONNECTION TO DB:', db.path, 'COULD NOT BE STABLISHED! (skipped)')
-            warning(msg)
+            print(msg, quote=FALSE)
             next
           }
           scenario.name <- get_recent_scenario(myconn = myconn)
@@ -96,7 +96,7 @@ process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
     conn <- get_db_conn(db.path = db.path)
     if (is.null(conn)) {
       msg <- paste('CONNECTION TO DB:', db.path, 'COULD NOT BE STABLISHED! (skipped)\n')
-      warning(msg)
+      print(msg, quote=FALSE)
       next
     }
     selected.dbs.connections[[basename(db.path)]] <- conn
