@@ -130,7 +130,7 @@ process_dbs <- function(query, SELECTED.DBs, query.query, output.path){
     cat("---\n")
 
     log.table <- log.addRecord(
-      Query.number = names(query), 
+      Query.number = query.number, 
       Query.name = query.title, 
       DB.name = db.name,
       Records.count = analytics[['Records']],
@@ -439,7 +439,7 @@ tryCatch(
         #TODO:
         # restricting the name init. to database_ can be eliminated
         list_dbs <-
-          grep(pattern = ".*(database_)",
+          grep(pattern = "^database_",
                x = list_dbs,
                value = TRUE)
         
