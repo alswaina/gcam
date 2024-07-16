@@ -1,6 +1,6 @@
 ### DESCRIPTION
 
-Code to extract queries from Basex to csv files. The code has the following features: 
+Code to extract queries from a single or multiple Basex files to CSV files. The code has the following features: 
 
 1. Choosing query and country(ies)
 2. Aggregate results per region or query
