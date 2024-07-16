@@ -1,6 +1,10 @@
 ### DESCRIPTION
 
-_Coming soon.._
+Code to extract queries from Basex to csv files. The code has the following features: 
+
+1. Choosing query and country(ies)
+2. Aggregate results per region or query
+3. Logging execution 
 
 ### Part 1: Script
 
